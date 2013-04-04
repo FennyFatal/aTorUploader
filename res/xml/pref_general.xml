@@ -11,6 +11,14 @@
         android:title="Server URL" />
     <EditTextPreference
         android:capitalize="words"
+        android:inputType="textUri"
+        android:key="server_path"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="Server URL" />
+    <EditTextPreference
+        android:capitalize="words"
         android:defaultValue=""
         android:inputType="text"
         android:key="user_name"

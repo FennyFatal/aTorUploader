@@ -30,11 +30,4 @@
 		<nature>com.android.ide.eclipse.adt.AndroidNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>res/tumblr_ls2kwbtKLS1r07233.jpg</name>
-			<type>1</type>
-			<location>C:/Users/22641/Desktop/tumblr_ls2kwbtKLS1r07233.jpg</location>
-		</link>
-	</linkedResources>
 </projectDescription>
