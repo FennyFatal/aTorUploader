@@ -1,4 +1,4 @@
-package com.fennyfatal.torftppusher;
+package com.fennyfatal.atoruploader;
 
 import java.io.BufferedInputStream;
 import java.io.File;

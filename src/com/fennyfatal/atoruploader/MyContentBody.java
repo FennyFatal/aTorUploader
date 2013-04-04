@@ -1,4 +1,4 @@
-package com.fennyfatal.torftppusher;
+package com.fennyfatal.atoruploader;
 import java.io.IOException;
 import java.io.OutputStream;
 import org.apache.http.entity.mime.content.ContentBody;

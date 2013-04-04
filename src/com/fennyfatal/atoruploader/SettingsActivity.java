@@ -1,4 +1,4 @@
-package com.fennyfatal.torftppusher;
+package com.fennyfatal.atoruploader;
 
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
