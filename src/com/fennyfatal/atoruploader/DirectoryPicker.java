@@ -42,7 +42,8 @@ public class DirectoryPicker extends ListActivity{
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		String rawServer = prefs.getString("server_url", "fail");
 		//Get rid of trailing slashes. TODO: Factor this out into a function.
-        server = TorrentUploader.removeTrailingSlash(rawServer);
+        rawServer = TorrentUploader.removeTrailingSlash(rawServer);
+        server = rawServer.contains("http://") || rawServer.contains("https://") ? rawServer : "http://" + rawServer;
         String rawCurPath = prefs.getString("server_path", "fail");
         //Because windows users are all noobs!!!
         rawCurPath = rawCurPath.replace('\\', '/');
@@ -92,6 +93,7 @@ public class DirectoryPicker extends ListActivity{
 	{
 		//Check if we are already waiting for a dir listing.
 		//TODO: add some sort of visual indication that we are working...
+		//TODO: add support for password protected rutorrent
 		if (working)
 			return null;
 		working = true;

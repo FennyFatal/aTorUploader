@@ -69,6 +69,7 @@ public class TorrentUploader extends AsyncTask<TorrentUploadARGS, Void, Boolean>
 	    return new DefaultHttpClient(cm, params);
 	}
 	
+	//TODO: add support for password protected rutorrent
 	@Override
 	protected Boolean doInBackground(TorrentUploadARGS... arg0) {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(parentContext);

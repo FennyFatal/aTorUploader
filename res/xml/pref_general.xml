@@ -16,7 +16,7 @@
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
-        android:title="Server URL" />
+        android:title="Server Path" />
     <EditTextPreference
         android:capitalize="words"
         android:defaultValue=""
