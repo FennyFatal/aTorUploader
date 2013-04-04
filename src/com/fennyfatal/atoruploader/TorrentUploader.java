@@ -50,26 +50,25 @@ public class TorrentUploader extends AsyncTask<TorrentUploadARGS, Void, Boolean>
 	
 	public TorrentUploader(Context theContext)
 	{
+	    //Pass the context of the Calling Activity so we can look at settings.
+		parentContext = theContext;
+		// Create a new handler for UI requests or android yells when we try to put up Toasts.
 		HandlerThread uiThread = new HandlerThread("UIHandler");
 	    uiThread.start();
 	    uIHandler = new UIHandler(uiThread.getLooper());
-		parentContext = theContext;
 	}
+	
+	//We use this http client to ignore SSL when using a Proxy to debug our http connections.
 	protected HttpClient constructClient() {
 	    HttpParams params = new BasicHttpParams();
 	    params.setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_1);
-
-	    // use the debug proxy to view internet traffic on the host computer
-
-	    // ignore ssl certification (due to signed authority not appearing on android list of permitted authorities)
-	    // see: http://blog.antoine.li/2010/10/22/android-trusting-ssl-certificates/
 	    SchemeRegistry registry = new SchemeRegistry();
 	    registry.register(new Scheme("http", new PlainSocketFactory(), 80));
 	    registry.register(new Scheme("https", new PlainSocketFactory(), 443)); 
 	    ClientConnectionManager cm = new SingleClientConnManager(params, registry);
-
 	    return new DefaultHttpClient(cm, params);
 	}
+	
 	@Override
 	protected Boolean doInBackground(TorrentUploadARGS... arg0) {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(parentContext);
@@ -83,6 +82,7 @@ public class TorrentUploader extends AsyncTask<TorrentUploadARGS, Void, Boolean>
 			String filename = "";
 			if ( uri.getScheme().equalsIgnoreCase("http") || uri.getScheme().equalsIgnoreCase("https"))
 			{
+				//User has clicked on a URL, download the file content into our buffer. Then read the filename from the http headers if there is one. 
 				HttpUriRequest torGetter = new HttpGet(uri); 
 				HttpResponse myTorrent = httpclient.execute(torGetter);
 				HttpEntity ent = myTorrent.getEntity();
@@ -95,12 +95,16 @@ public class TorrentUploader extends AsyncTask<TorrentUploadARGS, Void, Boolean>
 						filename = element.getParameterByName("filename").getValue();
 				}
 				}
-				finally {}
+				finally {} /*TODO Maybe do something if we fail here... 
+				This only seems to happen when what.cd gives us a bad file, or the server gives us raw html.*/
+				
+				//Sanity check our filename.
 				if (filename.equalsIgnoreCase(""))
 					filename = "temp.torrent";
 			}
 			else if ( uri.getScheme().equalsIgnoreCase("file"))
 			{
+				//User has selected a file, let's load it into our buffer, and snag the filename.
 				File data = new File(uri.getPath());
 			    BufferedInputStream is = new BufferedInputStream(new FileInputStream(data));
 			    torrentFileByteArray =  new byte[(int)data.length()];
@@ -108,18 +112,23 @@ public class TorrentUploader extends AsyncTask<TorrentUploadARGS, Void, Boolean>
 				filename = uri.getPath();
 				filename = filename.substring(filename.lastIndexOf('/')+1);
 			}
-			HttpPost post = new HttpPost("http://" + TorrentUploader.getServerDomain(rawServer)+"/rutorrent/php/addtorrent.php?");
+			HttpPost post = new HttpPost(removeTrailingSlash(rawServer) +"/php/addtorrent.php?");
 			MultipartEntity entity = new MultipartEntity();
+			//Set the directory to save to
 			entity.addPart(new FormBodyPart("dir_edit", new StringBody(upload_path)));
-			//entity.addPart(new FormBodyPart("torrent_file", new StringBody(torrentFileContentsString, "application/x-bittorrent", Charset.defaultCharset())));
+			//Use our own content Body because the built in FileBody fails hard.
 			entity.addPart("torrent_file", new MyContentBody(torrentFileByteArray, "application/x-bittorrent", filename));
 			post.setEntity(entity);
 			post.addHeader("Connection", "close");
+			//RuTorrent always returns the success in the redir, httpclient doesn't like that.
 			httpclient.getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, false);
 			HttpResponse respo = httpclient.execute(post);
+			//Okay, let's see how we did. Let's look at the redir value and see how we did.
 			String response = respo.getFirstHeader("Location").getValue();
+			//TODO: Maybe do something with the torrent name here?
 			if (response.contains("Success"))
 			{
+				//TOAST!!!
 				handleUIRequest("Torrent Successfully Uploaded");
 				return true;
 			}
@@ -137,10 +146,12 @@ public class TorrentUploader extends AsyncTask<TorrentUploadARGS, Void, Boolean>
 		{
 			e.printStackTrace();
 		}
+		//FAILTOAST :(
 		handleUIRequest("Torrent Upload Failure");
 		return false;
 	}
 	
+	//This method strips anything from our server url that is not the hostname.
 	@SuppressLint("DefaultLocale")
 	public static String getServerDomain(String rawServer) {
 		String[] RemoveAtTheStart = {"http://","ftp://","https://"};
@@ -151,8 +162,12 @@ public class TorrentUploader extends AsyncTask<TorrentUploadARGS, Void, Boolean>
 			rawServer = rawServer.substring(0, rawServer.indexOf('/'));
 		return rawServer;
 	}
+	@SuppressLint("DefaultLocale")
+	public static String removeTrailingSlash(String rawServer) {
+		return rawServer.endsWith("/") ? rawServer.substring(0,rawServer.length()-1) : rawServer;
+	}
 
-	
+	//Workaround the fact that we are a background worker.
 	private final class UIHandler extends Handler
 	{
 	    public static final int DISPLAY_UI_TOAST = 0;
@@ -176,13 +191,14 @@ public class TorrentUploader extends AsyncTask<TorrentUploadARGS, Void, Boolean>
 	            t.show();
 	        }
 	        case UIHandler.DISPLAY_UI_DIALOG:
-	            //TBD
+	            //TODO: Add a thing to display pop-up dialogs rather than just a toast. Seems a bit too heavy for our purposes here...
 	        default:
 	            break;
 	        }
 	    }
 	}
 
+	//Call the workaround.
 	protected void handleUIRequest(String message)
 	{
 	    Message msg = uIHandler.obtainMessage(UIHandler.DISPLAY_UI_TOAST);

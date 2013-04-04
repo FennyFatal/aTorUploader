@@ -34,14 +34,19 @@ public class DirectoryPicker extends ListActivity{
 	public static final String CHOSEN_DIRECTORY = "chosenDir";
 	public static final int PICK_DIRECTORY = 2432;
 	
+	//TODO: Add instance for picking the default download directory. Users have a tendency to fail at typing their paths.
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_directory_picker);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		String rawServer = prefs.getString("server_url", "fail");
-        server = TorrentUploader.getServerDomain(rawServer);
-        curPath = rawServer.indexOf('/', rawServer.indexOf(server)) ==-1 ? "" : rawServer.substring(rawServer.indexOf('/', rawServer.indexOf(server)));
+		//Get rid of trailing slashes. TODO: Factor this out into a function.
+        server = TorrentUploader.removeTrailingSlash(rawServer);
+        String rawCurPath = prefs.getString("server_path", "fail");
+        //Because windows users are all noobs!!!
+        rawCurPath = rawCurPath.replace('\\', '/');
+        curPath = TorrentUploader.removeTrailingSlash(rawCurPath);
 		setTitle(curPath);
 		Button btnChoose = (Button) findViewById(R.id.btnChoose);
 		btnChoose.setText("Choose " + "'" + curPath.substring(curPath.lastIndexOf('/')+1).replace("\"", "") + "'");
@@ -73,7 +78,7 @@ public class DirectoryPicker extends ListActivity{
         	}
         });
 	}
-	
+
 	private void returnDir(String path) {
     	Intent result = new Intent();
     	result.putExtra(CHOSEN_DIRECTORY, path);
@@ -85,14 +90,18 @@ public class DirectoryPicker extends ListActivity{
 	@SuppressWarnings("deprecation")
 	private ArrayList<String> getDirs(String Domain, String Path)
 	{
+		//Check if we are already waiting for a dir listing.
+		//TODO: add some sort of visual indication that we are working...
 		if (working)
 			return null;
 		working = true;
 		AsyncHttpClient client = new AsyncHttpClient();
-		client.get("http://" + Domain + "/rutorrent/plugins/_getdir/info.php?mode=dirlist;&basedir=" + URLEncoder.encode(Path), new AsyncHttpResponseHandler() {
+		//Ask for directory listing in JSON. Doesn't matter THAT much if the directory the user typed in is wrong, the WebUI will give us the default.
+		client.get(Domain + "/plugins/_getdir/info.php?mode=dirlist;&basedir=" + URLEncoder.encode(Path), new AsyncHttpResponseHandler() {
 		    @Override
 		    public void onSuccess(String response) {
 		    	try{
+		    		//YAY we got a response from the server, let's try and process it.
 			    	ArrayList<String> Mine = new ArrayList<String>();
 					JSONObject obj = new JSONObject(response);
 					curPath = obj.getString("basedir");
@@ -110,7 +119,8 @@ public class DirectoryPicker extends ListActivity{
 		    		catch (JSONException e) {
 		    		e.printStackTrace();
 		    	}
-		    	finally {}
+		    	finally {} //TODO add failure messages here.
+		    	//Okay, we can let the user pick more directories.
 		    	working = false;
 		    }
 		});
