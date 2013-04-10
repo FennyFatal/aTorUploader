@@ -4,7 +4,7 @@ java.version=1.7.0_07
 java.vendor=Oracle Corporation
 BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_US
 Framework arguments:  -product com.android.ide.eclipse.adt.package.product
-Command-line arguments:  -data C:\Users\Fenny\Documents\workspace\TorFTPPusher -os win32 -ws win32 -arch x86_64 -product com.android.ide.eclipse.adt.package.product
+Command-line arguments:  -data C:\Users\Fenny\Documents\workspace\aTorUploader -os win32 -ws win32 -arch x86_64 -product com.android.ide.eclipse.adt.package.product
 
 !ENTRY com.android.ide.eclipse.ddms 4 0 2013-04-03 13:29:20.123
 !MESSAGE DDMS files not found: C:\eclipse\platform-tools\adb.exe C:\eclipse\tools\hprof-conv.exe C:\eclipse\tools\traceview.bat 
